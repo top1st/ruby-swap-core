@@ -38,9 +38,8 @@ describe('RubyFactory', () => {
 
   async function createPair(tokens: [string, string]) {
     const bytecode = `0x${RubyPair.evm.bytecode.object}`
-    await expect(factory.createPair(...tokens))
-      .to.emit(factory, 'PairCreated')
-      //.withArgs(TEST_ADDRESSES[0], TEST_ADDRESSES[1], null, bigNumberify(1))
+    await expect(factory.createPair(...tokens)).to.emit(factory, 'PairCreated')
+    //.withArgs(TEST_ADDRESSES[0], TEST_ADDRESSES[1], null, bigNumberify(1))
 
     await expect(factory.createPair(...tokens)).to.be.reverted // Ruby: PAIR_EXISTS
     await expect(factory.createPair(...tokens.slice().reverse())).to.be.reverted // Ruby: PAIR_EXISTS
