@@ -26,27 +26,11 @@ function getDomainSeparator(name: string, tokenAddress: string) {
         keccak256(toUtf8Bytes('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')),
         keccak256(toUtf8Bytes(name)),
         keccak256(toUtf8Bytes('1')),
-        1,
+        1987,
         tokenAddress
       ]
     )
   )
-}
-
-export function getCreate2Address(
-  factoryAddress: string,
-  [tokenA, tokenB]: [string, string],
-  bytecode: string
-): string {
-  const [token0, token1] = tokenA < tokenB ? [tokenA, tokenB] : [tokenB, tokenA]
-  const create2Inputs = [
-    '0xff',
-    factoryAddress,
-    keccak256(solidityPack(['address', 'address'], [token0, token1])),
-    keccak256(bytecode)
-  ]
-  const sanitizedInputs = `0x${create2Inputs.map(i => i.slice(2)).join('')}`
-  return getAddress(`0x${keccak256(sanitizedInputs).slice(-40)}`)
 }
 
 export async function getApprovalDigest(

@@ -4,7 +4,6 @@ import { AddressZero } from 'ethers/constants'
 import { bigNumberify } from 'ethers/utils'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
 
-import { getCreate2Address } from './shared/utilities'
 import { factoryFixture } from './shared/fixtures'
 
 import RubyPair from '../build/RubyPair.json'
@@ -39,19 +38,18 @@ describe('RubyFactory', () => {
 
   async function createPair(tokens: [string, string]) {
     const bytecode = `0x${RubyPair.evm.bytecode.object}`
-    const create2Address = getCreate2Address(factory.address, tokens, bytecode)
     await expect(factory.createPair(...tokens))
       .to.emit(factory, 'PairCreated')
-      .withArgs(TEST_ADDRESSES[0], TEST_ADDRESSES[1], create2Address, bigNumberify(1))
+      //.withArgs(TEST_ADDRESSES[0], TEST_ADDRESSES[1], null, bigNumberify(1))
 
     await expect(factory.createPair(...tokens)).to.be.reverted // Ruby: PAIR_EXISTS
     await expect(factory.createPair(...tokens.slice().reverse())).to.be.reverted // Ruby: PAIR_EXISTS
-    expect(await factory.getPair(...tokens)).to.eq(create2Address)
-    expect(await factory.getPair(...tokens.slice().reverse())).to.eq(create2Address)
-    expect(await factory.allPairs(0)).to.eq(create2Address)
+    let pairAddress = await factory.getPair(...tokens)
+    expect(await factory.getPair(...tokens.slice().reverse())).to.eq(pairAddress)
+    expect(await factory.allPairs(0)).to.eq(pairAddress)
     expect(await factory.allPairsLength()).to.eq(1)
 
-    const pair = new Contract(create2Address, JSON.stringify(RubyPair.abi), provider)
+    const pair = new Contract(pairAddress, JSON.stringify(RubyPair.abi), provider)
     expect(await pair.factory()).to.eq(factory.address)
     expect(await pair.token0()).to.eq(TEST_ADDRESSES[0])
     expect(await pair.token1()).to.eq(TEST_ADDRESSES[1])
@@ -68,7 +66,7 @@ describe('RubyFactory', () => {
   it('createPair:gas', async () => {
     const tx = await factory.createPair(...TEST_ADDRESSES)
     const receipt = await tx.wait()
-    expect(receipt.gasUsed).to.eq(2502886)
+    expect(receipt.gasUsed).to.eq(2517557)
   })
 
   it('setFeeTo', async () => {
